@@ -1,0 +1,17 @@
+# Ignore Python cache and compiled files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Ignore virtual environment
+venv/
+ENV/
+env/
+.venv/
+
+# Ignore uploads folder (user-generated content)
+Uploads/
+
+# Ignore macOS system files
+.DS_Store
