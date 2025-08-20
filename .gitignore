@@ -12,6 +12,8 @@ env/
 
 # Ignore uploads folder (user-generated content)
 Uploads/
+decoded/
+encoded/
 
 # Ignore macOS system files
 .DS_Store
