@@ -1,8 +1,8 @@
-import streamlit as st      #web-interface
-from PIL import Image       #for importing images
-from pathlib import Path    #for path operations
-from stegano import lsb
-import numpy as np
+import streamlit as st      # web-interface
+from PIL import Image       # importing images
+from pathlib import Path    # for path operations
+from stegano import lsb     # Python Steganography module
+import numpy as np          # Working with area
 
 st.set_page_config(page_title="Uncovering", page_icon="🔎")
 
