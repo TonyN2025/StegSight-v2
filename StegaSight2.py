@@ -94,7 +94,7 @@ elif page.startswith("🔐"):
             st.image(cover, caption="Stego Image Preview", use_container_width=True)
             st.download_button("⬇️ Download Stego Image", data=cover.getbuffer(), file_name="stego.png")
 
-# Link to "uncover" page used for decoding data
+# link to decode
 elif page.startswith("🕵️‍♂️"):
     st.header("🕵️‍♂️ Uncover & Analyse Files")
     uploaded_files = st.file_uploader("Upload files", type=ALL_FILE_TYPES, accept_multiple_files=True)
@@ -102,11 +102,10 @@ elif page.startswith("🕵️‍♂️"):
     if uploaded_files:
         for f in uploaded_files:
             st.subheader(f.name)
+            
             if f.type.startswith("image/"):
-                img = Image.open(f)
-                st.image(img, use_container_width=True)
-
-            st.info("Decoded preview / threat analysis would appear here.")
-            st.download_button("⬇️ Download extracted payload", data=f.getbuffer(), file_name=f.name)
-            st.markdown("---")
+                # Create expandable section for image preview
+                with st.expander("📸 Preview Image", expanded=True):
+                    img = Image.open(f)
+                    st.image(img, use_container_width=True)
 
