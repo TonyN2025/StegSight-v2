@@ -1,4 +1,6 @@
 import streamlit as st
+from features.imageFeatures import extract_basic_stats
+from features.audioFeatures import extract_spectrogram_features
 
 st.title("🔎 Decode")
 st.write("Extract hidden messages from an image.")

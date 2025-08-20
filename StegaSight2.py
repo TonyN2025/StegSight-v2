@@ -5,7 +5,7 @@ import io
 import random
 import base64
 
-# --- App Config ---
+# App Config
 st.set_page_config(page_title="StegaSight", layout="centered", page_icon="🔎")
 
 APP_DIR = Path(__file__).parent
@@ -14,7 +14,7 @@ UPLOAD_DIR.mkdir(exist_ok=True)
 
 ALL_FILE_TYPES = ["png", "jpg", "jpeg", "txt", "wav", "mp3", "pdf"]
 
-# --- Top Navigation (Horizontal) ---
+# Horizontal Navigation bar 
 st.markdown(
     """
     <style>
@@ -37,14 +37,12 @@ st.markdown(
     """, unsafe_allow_html=True
 )
 
-# --- Navigation ---
+# Navigation
 page = st.selectbox(
     "", ["🏠 Home", "🔐 Hide", "🕵️‍♂️ Uncover & Analyse"], index=0, label_visibility="collapsed"
 )
 
-# -----------------------------
-# HOME PAGE
-# -----------------------------
+# Home page
 if page.startswith("🏠"):
     st.markdown("<h1 style='text-align:center;'>Welcome to StegaSight</h1>", unsafe_allow_html=True)
     st.markdown(
@@ -53,7 +51,7 @@ if page.startswith("🏠"):
         "</p>", unsafe_allow_html=True
     )
 
-    # Centered, smaller home image between two dividers
+    # Added: Centered logo to homepage
     home_img_path = APP_DIR / "logo.png"
     if home_img_path.exists():
         img_bytes = home_img_path.read_bytes()
@@ -69,9 +67,8 @@ if page.startswith("🏠"):
             unsafe_allow_html=True
         )
 
-# -----------------------------
-# HIDE PAGE
-# -----------------------------
+
+# Link to "hide" page: will be use for encoding data into media files
 elif page.startswith("🔐"):
     st.header("🔐 Hide Data in Images")
     cover = st.file_uploader("Upload cover image", type=["png", "jpg", "jpeg"])
@@ -97,9 +94,7 @@ elif page.startswith("🔐"):
             st.image(cover, caption="Stego Image Preview", use_container_width=True)
             st.download_button("⬇️ Download Stego Image", data=cover.getbuffer(), file_name="stego.png")
 
-# -----------------------------
-# UNCOVER & ANALYSE PAGE
-# -----------------------------
+# Link to "uncover" page used for decoding data
 elif page.startswith("🕵️‍♂️"):
     st.header("🕵️‍♂️ Uncover & Analyse Files")
     uploaded_files = st.file_uploader("Upload files", type=ALL_FILE_TYPES, accept_multiple_files=True)
