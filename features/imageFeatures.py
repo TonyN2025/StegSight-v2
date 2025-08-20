@@ -96,3 +96,20 @@ def assess_steganalysis_threat(features: dict) -> tuple:
         return "suspicious", indicators
     else:
         return "dangerous", indicators
+
+
+# New function to extract and combine all features
+def extract_all_features(img: Image.Image) -> dict:
+    """
+    Extracts both basic stats and advanced steganalysis features from an image.
+    Returns a merged dictionary of all features.
+    """
+    # Extract basic stats as list
+    basic_stats = extract_basic_stats(img)
+    basic_keys = ['basic_mean', 'basic_std', 'basic_p25', 'basic_p50', 'basic_p75']
+    basic_dict = dict(zip(basic_keys, basic_stats))
+    # Extract advanced features as dict
+    advanced_dict = extract_advanced_steganalysis_features(img)
+    # Merge and return
+    all_features = {**basic_dict, **advanced_dict}
+    return all_features
