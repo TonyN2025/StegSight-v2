@@ -1,0 +1,95 @@
+# -------------------------------
+# ⛏️ Encode & Decode Functions
+# -------------------------------
+from PIL import Image
+import numpy as np
+import streamlit as st
+import io
+
+def preprocess_secret(cover_img, secret_img):
+    return secret_img.resize(cover_img.size)
+
+def encode_image_with_image(cover_image: Image.Image, secret_image: Image.Image) -> Image.Image:
+    cover = cover_image.convert('RGB')
+    secret = preprocess_secret(cover, secret_image.convert('RGB'))
+
+    cover_np = np.array(cover)
+    secret_np = np.array(secret)
+
+    secret_bits = secret_np >> 6  # Keep 2 MSBs
+    encoded_np = (cover_np & 0b11111100) | secret_bits  # Insert into 2 LSBs
+
+    encoded_img = Image.fromarray(encoded_np.astype(np.uint8))
+    return encoded_img
+
+def decode_image_from_image(stego_image: Image.Image) -> Image.Image:
+    stego = stego_image.convert('RGB')
+    stego_np = np.array(stego)
+
+    secret_bits = (stego_np & 0b00000011) << 6  # Extract & shift back
+    secret_img = Image.fromarray(secret_bits.astype(np.uint8))
+    return secret_img
+
+# -------------------------------
+# 🎛️ Streamlit UI
+# -------------------------------
+st.set_page_config(page_title="Image-in-Image Steganography", layout="centered")
+
+st.title("🕵️‍♂️ Image-in-Image Steganography")
+
+tab1, tab2 = st.tabs(["🔐 Encode", "🔓 Decode"])
+
+# ---------- Encode Tab ----------
+with tab1:
+    st.header("🔐 Hide One Image Inside Another")
+
+    cover_file = st.file_uploader("Upload Cover Image (PNG/JPG)", type=["png", "jpg", "jpeg"])
+    secret_file = st.file_uploader("Upload Secret Image to Hide (PNG/JPG)", type=["png", "jpg", "jpeg"])
+
+    if st.button("Encode Image") and cover_file and secret_file:
+        try:
+            cover_img = Image.open(cover_file)
+            secret_img = Image.open(secret_file)
+
+            stego_img = encode_image_with_image(cover_img, secret_img)
+
+            st.image(stego_img, caption="🔍 Encoded Image", use_column_width=True)
+
+            buf = io.BytesIO()
+            stego_img.save(buf, format="PNG")
+            buf.seek(0)
+
+            st.download_button(
+                label="📥 Download Encoded Image",
+                data=buf,
+                file_name="stego_image.png",
+                mime="image/png"
+            )
+        except Exception as e:
+            st.error(f"Error: {e}")
+
+# ---------- Decode Tab ----------
+with tab2:
+    st.header("🔓 Extract Hidden Image from Stego Image")
+
+    stego_file = st.file_uploader("Upload Stego Image", type=["png", "jpg", "jpeg"], key="decode_tab")
+
+    if st.button("Decode Hidden Image") and stego_file:
+        try:
+            stego_img = Image.open(stego_file)
+            decoded_img = decode_image_from_image(stego_img)
+
+            st.image(decoded_img, caption="🖼️ Decoded Secret Image", use_column_width=True)
+
+            buf = io.BytesIO()
+            decoded_img.save(buf, format="PNG")
+            buf.seek(0)
+
+            st.download_button(
+                label="📥 Download Decoded Image",
+                data=buf,
+                file_name="decoded_secret.png",
+                mime="image/png"
+            )
+        except Exception as e:
+            st.error(f"Error: {e}")
