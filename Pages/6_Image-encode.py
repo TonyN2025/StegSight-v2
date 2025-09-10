@@ -1,6 +1,7 @@
 from PIL import Image
 import numpy as np
 import os
+import argparse
 
 def message_to_bits(message):
     return ''.join([format(ord(char), '08b') for char in message])
@@ -34,8 +35,12 @@ def encode_image(input_image_path, output_image_path, secret_message):
     print("Full path:", os.path.abspath(output_image_path))
 
 if __name__ == "__main__":
-    input_img = "input.png"       # Your input image file (make sure it exists)
-    output_img = "encoded.png"    # Output encoded image file
-    secret = "Stegasight is cool!"  # Secret message to encode
+    parser = argparse.ArgumentParser(description="Encode a secret message into an image.")
+    parser.add_argument("-i", "--input", required=True, help="Input cover image file path")
+    parser.add_argument("-o", "--output", required=True, help="Output encoded image file path")
+    parser.add_argument("-s", "--secret", required=True, help="Secret message to encode")
 
-    encode_image(input_img, output_img, secret)
+    args = parser.parse_args()
+
+    encode_image(args.input, args.output, args.secret)
+
