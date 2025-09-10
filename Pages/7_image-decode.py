@@ -1,5 +1,6 @@
 from PIL import Image
 import numpy as np
+import argparse
 
 def bits_to_message(bits):
     chars = []
@@ -35,7 +36,12 @@ def decode_image(encoded_image_path):
     return message
 
 if __name__ == "__main__":
-    encoded_img = "encoded.png"  # Your encoded image file
-    secret_message = decode_image(encoded_img)
+    parser = argparse.ArgumentParser(description="Decode secret message from encoded image.")
+    parser.add_argument("-i", "--input", required=True, help="Input encoded image file path")
+
+    args = parser.parse_args()
+
+    secret_message = decode_image(args.input)
     print("🔓 Decoded secret message:")
     print(secret_message)
+
