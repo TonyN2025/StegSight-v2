@@ -19,7 +19,6 @@ def text_to_bits(s: str) -> np.ndarray:
     return bits.astype(np.uint8)
 
 def add_length_prefix(bits: np.ndarray) -> np.ndarray:
-    # prefix = 32-bit unsigned int (number of BYTES of payload)
     nbytes = (len(bits) + 7) // 8
     prefix = np.array([(nbytes >> i) & 1 for i in range(31, -1, -1)], dtype=np.uint8)
     return np.concatenate([prefix, bits])
@@ -27,7 +26,7 @@ def add_length_prefix(bits: np.ndarray) -> np.ndarray:
 def pick_indices(sample_rate: int, nfft: int, low_hz: float, high_hz: float, step: int) -> np.ndarray:
     low_bin = int(np.ceil(low_hz * nfft / sample_rate))
     high_bin = int(np.floor(high_hz * nfft / sample_rate))
-    low_bin = max(low_bin, 1)  # skip DC
+    low_bin = max(low_bin, 1)
     high_bin = min(high_bin, nfft // 2)
     if high_bin <= low_bin:
         return np.array([], dtype=int)
@@ -139,3 +138,4 @@ if uploaded is not None:
         st.warning("Please enter a text message to hide.")
 else:
     st.info("Upload a WAV file from the sidebar.")
+
