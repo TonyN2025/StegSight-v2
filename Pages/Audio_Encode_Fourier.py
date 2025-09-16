@@ -80,7 +80,7 @@ if uploaded is not None:
     try:
         audio, sr = sf.read(uploaded)
         if audio.ndim == 2:
-            audio = audio.mean(axis=1)  # convert to mono
+            audio = audio.mean(axis=1)
         audio = audio.astype(np.float64)
         st.audio(uploaded, format="audio/wav")
         st.write(f"Sample rate: **{sr} Hz**, Duration: **{len(audio)/sr:.2f} s**")
@@ -138,4 +138,5 @@ if uploaded is not None:
         st.warning("Please enter a text message to hide.")
 else:
     st.info("Upload a WAV file from the sidebar.")
+
 
