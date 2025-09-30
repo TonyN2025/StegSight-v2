@@ -1,9 +1,10 @@
 import streamlit as st
 import numpy as np
 import soundfile as sf
-from numpy.fft import rfft
+from numpy.fft import rfft, irfft
 import string
 import unicodedata
+from io import BytesIO
 
 st.set_page_config(page_title="Audio Encode (Fourier-QIM)", page_icon="🎛️", layout="centered")
 st.title("🔒 Hide Text in Audio (Fourier/QIM)")
@@ -148,4 +149,3 @@ if uploaded is not None:
         st.warning("Please enter a text message to hide.")
 else:
     st.info("Upload a WAV file from the sidebar.")
-
