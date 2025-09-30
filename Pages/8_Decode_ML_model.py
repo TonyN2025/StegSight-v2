@@ -7,7 +7,7 @@ import sys
 import torch
 import torch.nn as nn
 from torchvision import transforms
-
+from torchvision.transforms import functional as F
 
 
 st.set_page_config(page_title="Uncovering", page_icon="🔎")
@@ -20,6 +20,19 @@ uploads_dir = Path("uploads_ML")
 uploads_dir.mkdir(exist_ok=True)
 
 # ML Model Setup Stuff
+
+class TopLeftCrop:
+    def __init__(self, size):
+            self.size = size
+    def __call__(self, img):
+        height = self.size
+        if img.height > 100:
+            return F.crop(img, top=0, left=0, height=height, width=img.width)
+        else:
+            return(img)
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}(size={self.size})"
 
 class SimpleCNN(nn.Module):
     def __init__(self, num_classes):
@@ -91,11 +104,14 @@ class LSBHighlight3(object):
         return lsb_image
 
 transform = transforms.Compose([
+    TopLeftCrop(100),
     LSBHighlight3(),
     transforms.Resize((224, 224)),
     transforms.ToTensor(),
     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
 ])
+
+
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -152,7 +168,7 @@ if uploaded_files:
                     f"Extracted hidden message of <span style='color:#1E90FF;'>{uploaded_file.name}",
                     unsafe_allow_html=True
                 )
-                st.text_area("", display_text, height=200)
+                st.text_area("", display_text, height=200, key=uploaded_file)
 
 
 
