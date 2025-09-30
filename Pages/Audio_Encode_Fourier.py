@@ -82,8 +82,9 @@ if uploaded is not None:
         if audio.ndim == 2:
             audio = audio.mean(axis=1)
         audio = audio.astype(np.float64)
+        nfft = len(audio)  # 원본 오디오 길이 저장
         st.audio(uploaded, format="audio/wav")
-        st.write(f"Sample rate: **{sr} Hz**, Duration: **{len(audio)/sr:.2f} s**")
+        st.write(f"Sample rate: **{sr} Hz**, Duration: **{nfft/sr:.2f} s**, nfft: **{nfft} samples**")
     except Exception as e:
         st.error(f"Error reading audio: {e}")
         st.stop()
@@ -93,7 +94,6 @@ if uploaded is not None:
         bits = add_length_prefix(bits)
 
         spec = rfft(audio)
-        nfft = len(audio)
         idx = pick_indices(sr, nfft, low_hz, high_hz, int(step_bins))
         capacity = len(idx)
         st.info(f"Available capacity: **{capacity} bits** / Required: **{len(bits)} bits**")
@@ -112,6 +112,7 @@ if uploaded is not None:
                 st.error("Invalid frequency band selection. Please adjust cutoffs.")
             else:
                 apply_qim_encode(spec, idx[:len(bits)], bits, delta)
+                st.write("spec[idx][:10] before:", spec[idx[:10]])
                 stego = irfft(spec, n=nfft)
                 mx = np.max(np.abs(stego))
                 if mx > 0.999:
@@ -138,5 +139,3 @@ if uploaded is not None:
         st.warning("Please enter a text message to hide.")
 else:
     st.info("Upload a WAV file from the sidebar.")
-
-
