@@ -2,6 +2,8 @@ import streamlit as st
 import numpy as np
 import soundfile as sf
 from numpy.fft import rfft
+import string
+import unicodedata
 
 st.set_page_config(page_title="Audio Decode (Manual Fourier-QIM)", page_icon="🔓", layout="centered")
 st.title("🔓 Manual Decode: Extract Hidden Text from Audio (Fourier/QIM)")
