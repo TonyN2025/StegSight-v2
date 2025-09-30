@@ -66,8 +66,8 @@ if uploaded is not None:
 
     bits = qim_decode(spec, idx, delta, max_bits=max_bits)
     st.write(f"Decoded bits: {len(bits)}")
-    st.write("First 40 bits:", bits[:40])
-    st.write("Prefix as int:", int("".join(str(b) for b in bits[:32]), 2))
+    st.write("First 40 bits (decoded):", bits[:40])
+    st.write("Prefix as int (decoded):", int("".join(str(b) for b in bits[:32]), 2))
     text = bits_to_text(bits)
     if text == "" or text == "<decode error>":
         st.warning("No valid message decoded. Please check parameters or try different delta/strength.")
