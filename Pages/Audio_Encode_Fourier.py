@@ -1,10 +1,8 @@
 import streamlit as st
 import numpy as np
 import soundfile as sf
-from numpy.fft import rfft, irfft
-import string
-import unicodedata
 from io import BytesIO
+from numpy.fft import rfft, irfft
 
 st.set_page_config(page_title="Audio Encode (Fourier-QIM)", page_icon="🎛️", layout="centered")
 st.title("🔒 Hide Text in Audio (Fourier/QIM)")
@@ -35,7 +33,7 @@ def pick_indices(sample_rate: int, nfft: int, low_hz: float, high_hz: float, ste
     idx = np.arange(low_bin, high_bin+1, step, dtype=int)
     return idx
 
-def apply_qim_encode(spec: np.ndarray, idx: np.ndarray, bits: np.ndarray, delta: float, verbose=False) -> None:
+def apply_qim_encode(spec: np.ndarray, idx: np.ndarray, bits: np.ndarray, delta: float) -> None:
     mags = np.abs(spec[idx])
     phases = np.angle(spec[idx])
     eps = 1e-12
@@ -46,12 +44,6 @@ def apply_qim_encode(spec: np.ndarray, idx: np.ndarray, bits: np.ndarray, delta:
     adj = (target_parity != parity).astype(np.int64)
     q_new = q + np.where(adj == 1, 1, 0)
     mags_new = (q_new + 0.5) * delta
-    if verbose:
-        st.write("Before QIM mags (first 10):", mags[:10])
-        st.write("Intended bits (first 10):", bits[:10])
-        st.write("Parity before (first 10):", parity[:10])
-        st.write("Adj (first 10):", adj[:10])
-        st.write("After QIM mags (first 10):", mags_new[:10])
     spec[idx] = mags_new * np.exp(1j * phases)
 
 def estimate_delta(spec: np.ndarray, idx: np.ndarray, strength: float) -> float:
@@ -67,17 +59,20 @@ text = st.text_area("Enter the text message to hide", height=140, placeholder="T
 
 col1, col2, col3 = st.columns(3)
 with col1:
-    low_hz = st.number_input("Low cutoff frequency (Hz)", min_value=0.0, value=8000.0, step=100.0)
+    low_hz = st.number_input("Low cutoff frequency (Hz)", min_value=0.0, value=8000.0, step=100.0, help="Frequencies below this will not be modified.")
 with col2:
-    high_hz = st.number_input("High cutoff frequency (Hz)", min_value=1000.0, value=18000.0, step=100.0)
+    high_hz = st.number_input("High cutoff frequency (Hz)", min_value=1000.0, value=18000.0, step=100.0, help="Frequencies above this will not be modified.")
 with col3:
-    step_bins = st.number_input("Bin step interval", min_value=1, value=4, step=1)
+    step_bins = st.number_input("Bin step interval", min_value=1, value=4, step=1, help="Spacing between frequency bins. Larger values = less distortion but lower capacity.")
 
-scale_mode = st.radio("Strength scale", options=["Linear","Log10"], horizontal=True, index=1)
+scale_mode = st.radio("Strength scale", options=["Linear","Log10"], horizontal=True, index=1,
+                      help="Log10 is recommended: fine-tune between 1e-5 ~ 1e-1")
 if scale_mode == "Linear":
-    strength = st.slider("Quantization strength (delta scale)", min_value=1e-5, max_value=0.1, value=0.0015, step=1e-5)
+    strength = st.slider("Quantization strength (delta scale)", min_value=1e-5, max_value=0.1, value=0.0015, step=1e-5,
+                         help="Higher = more robust decoding, but more distortion. Lower = less distortion, but fragile.")
 else:
-    exp = st.slider("log10(strength)", min_value=-5.0, max_value=-1.0, value=-3.0, step=0.01)
+    exp = st.slider("log10(strength)", min_value=-5.0, max_value=-1.0, value=-3.0, step=0.01,
+                    help="Strength = 10^x. Example: x=-3 → 0.001, x=-2 → 0.01")
     strength = float(10**exp)
 st.caption(f"Current strength ≈ {strength:.6f}")
 
@@ -87,9 +82,8 @@ if uploaded is not None:
         if audio.ndim == 2:
             audio = audio.mean(axis=1)
         audio = audio.astype(np.float64)
-        nfft = len(audio)
         st.audio(uploaded, format="audio/wav")
-        st.write(f"Sample rate: **{sr} Hz**, Duration: **{nfft/sr:.2f} s**, nfft: **{nfft} samples**")
+        st.write(f"Sample rate: **{sr} Hz**, Duration: **{len(audio)/sr:.2f} s**")
     except Exception as e:
         st.error(f"Error reading audio: {e}")
         st.stop()
@@ -99,6 +93,7 @@ if uploaded is not None:
         bits = add_length_prefix(bits)
 
         spec = rfft(audio)
+        nfft = len(audio)
         idx = pick_indices(sr, nfft, low_hz, high_hz, int(step_bins))
         capacity = len(idx)
         st.info(f"Available capacity: **{capacity} bits** / Required: **{len(bits)} bits**")
@@ -108,21 +103,15 @@ if uploaded is not None:
         else:
             col_delta1, col_delta2 = st.columns([1,1])
             with col_delta1:
-                manual_delta_on = st.toggle("Manually set absolute delta (advanced)", value=False)
+                manual_delta_on = st.toggle("Manually set absolute delta (advanced)", value=False, help="Overrides strength-based estimate.")
             with col_delta2:
                 delta_manual = st.number_input("Absolute delta", min_value=0.0, max_value=1.0, value=0.0, step=1e-6, format="%.9f")
 
             delta = float(delta_manual) if manual_delta_on and delta_manual > 0 else estimate_delta(spec, idx, strength)
             if delta <= 0:
                 st.error("Invalid frequency band selection. Please adjust cutoffs.")
-            elif delta > 10*np.max(np.abs(spec[idx])):
-                st.warning("Delta is very large compared to the spectrum magnitude! Try lowering delta or increasing strength.")
             else:
-                # 명확하게 삽입되는 부분만 idx[:len(bits)] 사용
-                apply_qim_encode(spec, idx[:len(bits)], bits, delta, verbose=True)
-                # 삽입된 비트 정보를 print
-                st.write("Bits actually encoded (first 40):", bits[:40])
-                st.write("Prefix encoded (int):", int("".join(str(b) for b in bits[:32]), 2))
+                apply_qim_encode(spec, idx[:len(bits)], bits, delta)
                 stego = irfft(spec, n=nfft)
                 mx = np.max(np.abs(stego))
                 if mx > 0.999:
@@ -149,3 +138,5 @@ if uploaded is not None:
         st.warning("Please enter a text message to hide.")
 else:
     st.info("Upload a WAV file from the sidebar.")
+
+
