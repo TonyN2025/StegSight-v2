@@ -74,13 +74,13 @@ class SimpleCNN(nn.Module):
 
 class LSBHighlight3(object):
     def __call__(self, img):
-
-        width, height = img.size
+        img2 = img.convert("RGB")
+        width, height = img2.size
 
         lsb_image = Image.new('RGB', (width, height))
 
         # Load pixels for faster access
-        original_pixels = img.load()
+        original_pixels = img2.load()
         lsb_pixels = lsb_image.load()
 
         for x in range(width):
@@ -136,19 +136,23 @@ model.load_state_dict(checkpoint['model_state_dict'])
 model.to(device)
 model.eval()
 
+cols = st.columns(2)
+cols[0].header("Clean")
+cols[1].header("Hidden")
+
 if uploaded_files:
+
     for uploaded_file in uploaded_files:
         file_path = uploads_dir / uploaded_file.name
         with open(file_path, "wb") as f:
             f.write(uploaded_file.getbuffer())
-
         try:
             img = Image.open(file_path)
         except Exception as e:
             st.error(f"Error opening image: {e}")
             continue
 
-        with st.expander(f"Preview of {uploaded_file.name}", expanded=True):
+        #with st.expander(f"Preview of {uploaded_file.name}", expanded=True):
             st.image(img, use_container_width=True)
 
         input_tensor = transform(img).unsqueeze(0).to(device)
@@ -159,16 +163,26 @@ if uploaded_files:
             _, predicted = torch.max(outputs, 1)
             class_index = predicted.item()
             class_label = idx_to_class[class_index]
+            imgCol = Image.open(file_path)
             if class_index == 0:
                 Hidden = False
-                st.warning("No hidden message to decrypt.")
+                cols[0].image(imgCol)
+                #cols[0].warning("No hidden message to decrypt.")
             else:
-                display_text = lsb.reveal(img)
-                st.markdown(
-                    f"Extracted hidden message of <span style='color:#1E90FF;'>{uploaded_file.name}",
-                    unsafe_allow_html=True
-                )
-                st.text_area("", display_text, height=200, key=uploaded_file)
+                cols[1].image(imgCol)
+                cols[1].text(uploaded_file.name)
+                try:
+                    display_text = lsb.reveal(img)
+                    st.markdown(
+                        f"Extracted hidden message of <span style='color:#1E90FF;'>{uploaded_file.name}",
+                        unsafe_allow_html=True
+                    )
+                    st.text_area("", display_text, height=200, key=uploaded_file)
+                except IndexError:
+                    print("False positive detected")
+                    cols[1].error(f"False positive detected")
+
+
 
 
 
