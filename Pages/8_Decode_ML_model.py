@@ -179,8 +179,8 @@ if uploaded_files:
                     )
                     st.text_area("", display_text, height=200, key=uploaded_file)
                 except IndexError:
-                    print("False positive detected")
-                    cols[1].error(f"False positive detected")
+                    print("Corrupted bit detected")
+                    cols[1].error(f"Corrupted bit detected")
 
 
 
