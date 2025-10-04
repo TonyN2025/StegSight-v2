@@ -21,18 +21,22 @@ uploads_dir.mkdir(exist_ok=True)
 
 # ML Model Setup Stuff
 
-class TopLeftCrop:
-    def __init__(self, size):
-            self.size = size
+class CropImage():
+    def __init__(self, triggerHeight, maxHeight, maxWidth):
+        self.triggerHeight = triggerHeight
+        self.maxHeight = maxHeight
+        self.maxWidth = maxWidth
+
     def __call__(self, img):
-        height = self.size
-        if img.height > 100:
-            return F.crop(img, top=0, left=0, height=height, width=img.width)
+        if img.height > self.triggerHeight:  # 512
+            # print(f"Cropped image to height:{self.maxHeight} by width:{self.maxWidth}")
+            return F.crop(img, top=0, left=0, height=self.maxHeight, width=self.maxWidth)  # 112 / 512
         else:
-            return(img)
+            return (img)
 
     def __repr__(self):
         return f"{self.__class__.__name__}(size={self.size})"
+
 
 class SimpleCNN(nn.Module):
     def __init__(self, num_classes):
@@ -104,7 +108,7 @@ class LSBHighlight3(object):
         return lsb_image
 
 transform = transforms.Compose([
-    TopLeftCrop(100),
+    CropImage(512,112,512),
     LSBHighlight3(),
     transforms.Resize((224, 224)),
     transforms.ToTensor(),
