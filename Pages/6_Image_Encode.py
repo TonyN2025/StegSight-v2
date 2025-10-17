@@ -41,7 +41,7 @@ hidden_bits_default = 2
 hidden_bits = st.slider(
     "Hidden bits",
     min_value=1,
-    max_value=20,
+    max_value=8,
     value=hidden_bits_default,
     help="Number of least significant bits to encode/decode. Adjust to see visual effects."
 )
