@@ -6,12 +6,12 @@ import wave
 import matplotlib.pyplot as plt
 from skimage.measure import shannon_entropy
 
-# ---------------------------------
+
 # PIL: Strict image integrity
 # ---------------------------------
 ImageFile.LOAD_TRUNCATED_IMAGES = False
 
-# ---------------------------------
+
 # Helper Functions
 # ---------------------------------
 def image_to_bytes(img):
@@ -71,7 +71,7 @@ def save_encoded_wav(encoded_bytes, params):
     buf.seek(0)
     return buf
 
-# ---------------------------------
+
 # Audio Visualisations
 # ---------------------------------
 def read_wav_samples_and_rate(file_like):
@@ -115,13 +115,13 @@ def display_fft(audio_samples, framerate, title="FFT Magnitude Spectrum"):
     st.pyplot(plt)
     plt.close()
 
-# ---------------------------------
+
 # Streamlit Interface
 # ---------------------------------
 st.title("🕵️‍♀️ Image-to-Audio Steganography Tool + Forensic Report")
 option = st.selectbox("Choose operation:", ["Encode", "Decode", "Detect"])
 
-# ---------------------------------
+
 # Encode
 # ---------------------------------
 if option == "Encode":
@@ -169,7 +169,7 @@ if option == "Encode":
         except Exception as e:
             st.error(f"Error: {e}")
 
-# ---------------------------------
+
 # Decode
 # ---------------------------------
 elif option == "Decode":
@@ -194,8 +194,8 @@ elif option == "Decode":
         except Exception as e:
             st.error(f"Decoding failed: {e}")
 
-# ---------------------------------
-# Detect (with Forensic Report)
+
+# Detect w/Report
 # ---------------------------------
 elif option == "Detect":
     st.subheader("Detect Hidden Data in Audio")
